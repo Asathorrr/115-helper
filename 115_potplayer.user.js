@@ -498,6 +498,19 @@
     }
 
     // ============================================================
+    //  文件名清理：兼容 Windows 和 Linux 命名规范
+    // ============================================================
+    function sanitizeFilename(name) {
+        // 替换 Windows/Linux 均不允许的字符：/ \ : * ? " < > | 及控制字符
+        let s = name.replace(/[/\\:*?"<>|]/g, '_').replace(/[\x00-\x1f\x7f]/g, '_');
+        // 去除首尾空格和点（Windows 不允许）
+        s = s.replace(/^[\s.]+|[\s.]+$/g, '');
+        // Windows 保留设备名（大小写不敏感）
+        if (/^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(\.|$)/i.test(s)) s = '_' + s;
+        return s || '_';
+    }
+
+    // ============================================================
     //  提交单个下载任务
     // ============================================================
     function aria2AddUri(url, filename) {
@@ -505,7 +518,7 @@
             [url],
             {
                 dir:    ARIA2_DIR,
-                out:    filename,
+                out:    sanitizeFilename(filename),
                 header: [`User-Agent: ${UA}`],  // per-task 双重保险
             },
         ]);
